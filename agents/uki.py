@@ -1,21 +1,15 @@
+from agents.pathinfo import PathInfo
 from sprites import Agent
+from heapq import heappush, heappop
+from copy import deepcopy
 
 
-def advance(curr_path, curr_cost, new_path, new_cost):
-    return new_cost > curr_cost \
-           or new_cost == curr_cost and len(new_path) < len(curr_path) \
-           or new_cost == curr_cost and len(new_path) == len(curr_path) and new_path[-1] > new_path[-1]
+class UkiPathInfo(PathInfo):
+    def __init__(self, vertices: [int], cost: int):
+        super().__init__(vertices, cost)
 
-
-def get_pq_index(priority_queue, new_path,  new_cost):
-    next_index = 0
-    while next_index < len(priority_queue):
-        curr_path, curr_cost = priority_queue[next_index][0:1]
-        if advance(curr_path, curr_cost, new_path, new_cost):
-            next_index += 1
-        else:
-            break
-    return next_index
+    def get_cost(self):
+        return self.cost
 
 
 class Uki(Agent):
@@ -23,29 +17,24 @@ class Uki(Agent):
         super().__init__(x, y, file_name)
 
     def get_agent_path(self, coin_distance):
+        PathInfo.set_coin_distance(coin_distance)
         node_cnt = len(coin_distance)
-        # [path, cost, visited]
-        pq = [[[0], 0, [True] + [False for _ in range(1, node_cnt)]]]
+        pq = [UkiPathInfo([0], 0)]
         while len(pq) > 0:
-            curr_path, curr_cost, curr_visited = pq.pop(0)
+            path = heappop(pq)
 
-            if len(curr_path) == node_cnt:
-                curr_cost += coin_distance[curr_path[-1]][0]
-                curr_path += [0]
+            if len(path) == node_cnt + 1:
+                return path.vertices
 
-                idx = get_pq_index(pq, curr_path, curr_cost)
-                pq.insert(idx, [curr_path, curr_cost, curr_visited])
-
-            elif len(curr_path) == node_cnt + 1:
-                return curr_path
+            elif len(path) == node_cnt:
+                path.add_node(0)
+                heappush(pq, path)
 
             else:
                 for i in range(node_cnt):
-                    if not curr_visited[i]:
-                        next_visited = curr_visited.copy()
-                        next_visited[i] = True
-                        next_path = curr_path + [i]
-                        next_cost = curr_cost + coin_distance[curr_path[-1]][i]
+                    if not path.contains(i):
+                        next_path = deepcopy(path)
+                        next_path.add_node(i)
+                        heappush(pq, next_path)
 
-                        idx = get_pq_index(pq, next_path, next_cost)
-                        pq.insert(idx, [next_path, next_cost, next_visited])
+        return None
