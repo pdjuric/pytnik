@@ -1,4 +1,3 @@
-
 from sprites import Agent
 
 
@@ -7,14 +6,11 @@ class Aki(Agent):
         super().__init__(x, y, file_name)
 
     def get_agent_path(self, coin_distance):
-        collected = [True] + [False for i in range(1, len(coin_distance))]
+        collected = [True] + [False] * (len(coin_distance) - 1)
+        node_cnt = len(coin_distance)
         path = [0]
-        curr_coin = 0
-        while len(path) < len(coin_distance):
-            next_coin = None
-            for i in range(len(coin_distance)):
-                if not collected[i] and (next_coin is None or coin_distance[curr_coin][i] < coin_distance[curr_coin][next_coin]):
-                    next_coin = i
+        while len(path) < node_cnt:
+            next_coin = min([(coin_distance[path[-1]][i], i) for i in range(node_cnt) if not collected[i]])[1]
             collected[next_coin] = True
             path.append(next_coin)
         path.append(0)

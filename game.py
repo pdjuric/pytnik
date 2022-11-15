@@ -58,8 +58,14 @@ class Game:
             sys.argv[1] if len(sys.argv) > 1 else os.path.join(config.MAP_FOLDER, 'map0.txt'))
         self.collected_coins = [CollectedCoin(coin) for coin in self.coins]
         self.collected_coins_sprites = pygame.sprite.Group()
-        module = __import__('sprites')
-        class_ = getattr(module, sys.argv[2] if len(sys.argv) > 2 else 'ExampleAgent')
+        if len(sys.argv) > 2:
+            module = __import__('agents.' + sys.argv[2].lower())
+            submodule = getattr(module, sys.argv[2].lower())
+            class_ = getattr(submodule, sys.argv[2])
+        else:
+            module = __import__('agent')
+            class_ = getattr(module, 'ExampleAgent')
+
         self.agent = class_(agent_pos[0], agent_pos[1],
                             f'{sys.argv[2]}.png' if len(sys.argv) > 2 else 'ExampleAgent.png')
         self.max_elapsed_time = float(sys.argv[3]) if len(sys.argv) > 3 else 5.
