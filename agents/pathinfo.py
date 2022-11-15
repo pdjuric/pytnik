@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 
 class PathInfo:
     def __init__(self, vertices: [int], cost: int):
